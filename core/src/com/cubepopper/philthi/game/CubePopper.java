@@ -4,19 +4,25 @@ import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Matrix4;
 
 public class CubePopper extends ApplicationAdapter {
 	SpriteBatch batch;
 	CubeGrid grid;
-
+	BitmapFont font;
 	@Override
 	public void create () {
+		font = new BitmapFont();
+		font.setColor(new Color(0.0f, 0.0f, 0.0f, 1.0f));
+		font.getData().setScale(4.0f);
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
 		batch = new SpriteBatch();
-		grid = new CubeGrid(13, 8, batch);
+		grid = new CubeGrid(12, 8, batch);
 		Gdx.input.setInputProcessor(new InputAdapter(){
 			@Override
 			public boolean touchDown(int screenX, int screenY, int pointer, int button) {
@@ -33,11 +39,17 @@ public class CubePopper extends ApplicationAdapter {
 		batch.begin();
 		grid.draw();
 		batch.end();
+
+		batch.begin();
+		font.draw(batch, "Score: " + grid.getScore(), 0, -10);
+
+		batch.end();
 	}
 	
 	@Override
 	public void dispose () {
 		grid.dispose();
 		batch.dispose();
+		font.dispose();
 	}
 }

@@ -1,14 +1,16 @@
-package com.cubepopper.philthi.game;
+package com.cubepopper.philthi.game.Cubes;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.cubepopper.philthi.game.CubeConfig;
+import com.cubepopper.philthi.game.Position;
+import com.cubepopper.philthi.game.Size;
 
-public class Cube {
+public class PopCube implements CubeInterface{
     public static final int STATE_REST=0;
     public static final int STATE_FALLING=1;
-    public static final int STATE_REMOVED=3;
-    private Texture texture;
+    public static final int STATE_REMOVED=2;
+    protected Texture texture;
     public Position pos;
     public Position gridPos;
     public Size size;
@@ -16,30 +18,22 @@ public class Cube {
     public int state=STATE_REST;
     public int moveSpeed =1000;
     public int scaleSpeed=1;
-    public String type="";
+    public CubeConfig config;
 
-    public Cube(Texture texture, String type) {
-        this.type = type;
+    public PopCube(Texture texture, CubeConfig config) {
+        this.config = config;
         this.texture = texture;
         this.pos = new Position();
         this.size = new Size(texture.getWidth(), texture.getHeight());
-    }
-
-    public Cube(Texture texture, String type, float scale) {
-        this(texture, type);
-        this.scale = scale;
-        this.size.width = texture.getWidth();
-        this.size.height = texture.getHeight();
-
+        this.scale = config.scale;
     }
 
     public Texture getTexture() {
         return this.texture;
     }
 
-    public Cube clone() {
-        Cube clone = new Cube(this.texture, this.type, this.scale);
-
+    public PopCube clone() {
+        PopCube clone = new PopCube(this.texture, this.config);
         clone.size = new Size(this.size.width, this.size.height);
         clone.gridPos = new Position((int)this.gridPos.x, (int)this.gridPos.y);
         clone.pos = new Position((int)this.pos.x, (int)this.pos.y);
@@ -69,6 +63,7 @@ public class Cube {
         if(pos.approach(dest, (this.moveSpeed * timeElapsed))){
             state = STATE_REST;
             moveSpeed = 1000;
+            atRest();
         } else {
             state = STATE_FALLING;
             moveSpeed += 20;
@@ -76,6 +71,45 @@ public class Cube {
     }
 
     public String toString(){
-        return "[" + type.substring(0, 1).toUpperCase() + "]";
+        return "[" + config.type.substring(0, 1).toUpperCase() + "]";
+    }
+
+    @Override
+    public Position getGridPos() {
+        return gridPos;
+    }
+
+    @Override
+    public void setGridPos(Position newGridPos) {
+        gridPos = newGridPos;
+    }
+
+    @Override
+    public Position getPos() {
+        return pos;
+    }
+
+    @Override
+    public void setPos(Position newPos) {
+        pos = newPos;
+    }
+
+    @Override
+    public int getState() {
+        return state;
+    }
+
+    public boolean touchHandled(int col, int row) {
+        return false;
+    }
+
+    @Override
+    public boolean atRest() {
+        return false;
+    }
+
+    @Override
+    public CubeConfig getConfig() {
+        return config;
     }
 }
