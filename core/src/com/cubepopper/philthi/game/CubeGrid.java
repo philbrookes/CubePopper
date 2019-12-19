@@ -2,11 +2,14 @@ package com.cubepopper.philthi.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.math.Matrix4;
 
 import java.util.Collection;
 import java.util.HashMap;
 
-import sun.rmi.runtime.Log;
+import static com.cubepopper.philthi.game.Cube.STATE_FALLING;
+import static com.cubepopper.philthi.game.Cube.STATE_REMOVED;
+import static com.cubepopper.philthi.game.Cube.STATE_REST;
 
 public class CubeGrid {
     public final int STATE_ACTIVE=0;
@@ -22,8 +25,6 @@ public class CubeGrid {
 
     private int xOff=0, yOff=0;
 
-    private int state = STATE_ACTIVE;
-
     public void dispose() {
         cf.dispose();
     }
@@ -32,7 +33,7 @@ public class CubeGrid {
         this();
         this.rows = rows;
         this.columns = columns;
-        this.cubes = new Cube[rows][columns];
+        this.cubes = new Cube[columns][rows];
         this.batch = batch;
         populate();
         position();
@@ -49,28 +50,47 @@ public class CubeGrid {
     public void removeCubes(Collection<Position> positions) {
         for(int i=rows-1;i>=0;i--){
             for (Position pos:positions) {
-                if((int)pos.x == i){
-                    cubes[(int)pos.x][(int)pos.y].Remove();
+                if((int)pos.y == i){
+                    deleteCube((int)pos.x, (int)pos.y);
                 }
             }
         }
     }
 
-    public void deleteCube(int delRow, int delCol){
+    private void logGrid() {
+        String sentence = "    ";
+        for(int col=0; col <= columns-1; col++){
+            sentence += " " + col + " ";
+        }
+        Gdx.app.debug("cube popper", sentence);
+        sentence = "    ";
+        for(int col=0; col <= columns-1; col++){
+            sentence += " v ";
+        }
+        Gdx.app.debug("cube popper", sentence);
+
+        for (int row=rows-1;row>=0;row--){
+            sentence = "";
+            for(int col=0; col <= columns-1; col++){
+                sentence += cubes[col][row].toString();
+            }
+            Gdx.app.debug("cube popper", row + " > " + sentence);
+        }
+    }
+
+    public void deleteCube(int delCol, int delRow){
         CubeConfig[] configs = new CubeConfig[]{crystal, ruby, sand, topaz};
-        cubes[delRow][delCol] = null;
+        cubes[delCol][delRow] = null;
         //update the column, to fall down
         for(int row=delRow;row<=rows-1;row++) {
             //not top row, copy from row above
             if(row != rows-1) {
-                cubes[row][delCol] = cubes[row + 1][delCol].clone();
-                cubes[row][delCol].pos.y += cubes[row][delCol].scaledSize().height;
+                cubes[delCol][row] = cubes[delCol][row + 1].clone();
+                cubes[delCol][row].gridPos = new Position(delCol, row);
             } else { //top row, generate new cube
-                cubes[row][delCol] = cf.RandomCube(configs);
-                cubes[row][delCol].gridPos = new Position(row, delCol);
-                cubes[row][delCol].pos.y += cubes[row][delCol].scaledSize().height;
+                cubes[delCol][row] = cf.RandomCube(configs, new Position(delCol, row));
+                cubes[delCol][row].pos.y = cubes[delCol][row-1].pos.y + (cubes[delCol][row].scaledSize().height * 2);
             }
-            cubes[row][delCol].state = cubes[row][delCol].STATE_FALLING;
         }
     }
 
@@ -78,8 +98,7 @@ public class CubeGrid {
         CubeConfig[] configs = new CubeConfig[]{crystal, ruby, sand, topaz};
         for(int row=0;row<rows;row++) {
             for (int col=0;col<columns;col++){
-                cubes[row][col] = cf.RandomCube(configs);
-                cubes[row][col].gridPos = new Position(row, col);
+                cubes[col][row] = cf.RandomCube(configs, new Position(col, row));
             }
         }
     }
@@ -93,72 +112,52 @@ public class CubeGrid {
     }
 
     public void draw() {
-        if(state==STATE_ACTIVE) {
-            for (int col = 0; col < columns; col++) {
-                for (int row = 0; row < rows; row++) {
-                    if (cubes[row][col] == null) {
-                        continue;
-                    }
-                    Cube cube = cubes[row][col];
-                    cube.Process(Gdx.graphics.getDeltaTime());
-                    if(cube.state == cube.STATE_REMOVED){
-                        deleteCube(row, col);
-                    } else {
-                        cube.Draw(batch, xOff, yOff);
-                    }
-                }
+        Matrix4 offset = new Matrix4().trn(xOff, yOff, 0);
+        batch.setTransformMatrix(offset);
+        for (int col = 0; col < columns; col++) {
+            for (int row = 0; row < rows; row++) {
+                cubes[col][row].Process(Gdx.graphics.getDeltaTime());
+                cubes[col][row].Draw(batch);
             }
-        } else if(state==STATE_INACTIVE){
-                state = STATE_ACTIVE;
         }
     }
 
     public boolean touch(int touchX, int touchY){
-        if(state == STATE_INACTIVE){
+        if(touchX < xOff || touchX > (rows * cf.LoadCube(new CubeConfig("ruby")).scaledSize().width) + xOff ||
+            touchY < yOff || touchY > (rows * cf.LoadCube(new CubeConfig("ruby")).scaledSize().height) + yOff){
             return false;
         }
-        for (int col=0;col<columns;col++){
-            for(int row=0;row<rows;row++) {
-                if(cubes[row][col] == null) {
-                    continue;
-                }
-                Cube cube = cubes[row][col];
-                if(touchX >= xOff + (col * cube.scaledSize().width) && touchX <= xOff + (col * cube.scaledSize().width) + cube.scaledSize().width &&
-                    touchY >= yOff + (row * cube.scaledSize().height) && touchY <= yOff + (row * cube.scaledSize().height) + cube.scaledSize().height){
-                    Gdx.app.debug("cube popper", "touched cube at: " + cube.gridPos);
-                    HashMap<String, Position> neighbours = findNeighbours(row, col, new HashMap<String, Position>());
-                    if(neighbours.values().size() >= 2) {
-                        this.state = STATE_INACTIVE;
-                        Gdx.app.debug("cube popper", "removing a cube");
-                        removeCubes(neighbours.values());
-                    }
-                }
-            }
+
+        int col = (touchX - xOff) / (int)(cf.LoadCube(new CubeConfig("ruby")).scaledSize().width);
+        int row = (touchY - yOff) / (int)(cf.LoadCube(new CubeConfig("ruby")).scaledSize().height);
+        HashMap<String, Position> neighbours = findNeighbours(col, row, new HashMap<String, Position>());
+        if(neighbours.values().size() >= 2) {
+            removeCubes(neighbours.values());
         }
-        return false;
+        return true;
     }
 
-    public HashMap<String, Position> findNeighbours(int row, int col, HashMap<String, Position> neighbours){
-        neighbours.put(new Position(row, col).toString(), new Position(row, col));
-        Cube cube = cubes[row][col];
+    public HashMap<String, Position> findNeighbours(int col, int row, HashMap<String, Position> neighbours){
+        neighbours.put(new Position(col, row).toString(), new Position(col, row));
+        Cube cube = cubes[col][row];
         if(row > 0){
-            if(cubes[row-1][col].getTexture() == cube.getTexture() && !neighbours.containsKey(new Position(row-1, col).toString())){
-                neighbours = findNeighbours(row-1, col, neighbours);
+            if(cubes[col][row-1].state == STATE_REST && cubes[col][row-1].getTexture() == cube.getTexture() && !neighbours.containsKey(new Position(col, row-1).toString())){
+                neighbours = findNeighbours(col, row-1, neighbours);
             }
         }
         if(row < rows-1){
-            if(cubes[row+1][col].getTexture() == cube.getTexture() && !neighbours.containsKey(new Position(row+1, col).toString())){
-                neighbours = findNeighbours(row+1, col, neighbours);
+            if(cubes[col][row+1].state == STATE_REST && cubes[col][row+1].getTexture() == cube.getTexture() && !neighbours.containsKey(new Position(col, row+1).toString())){
+                neighbours = findNeighbours(col, row+1, neighbours);
             }
         }
         if(col > 0){
-            if(cubes[row][col-1].getTexture() == cube.getTexture() && !neighbours.containsKey(new Position(row, col-1).toString())){
-                neighbours = findNeighbours(row, col-1, neighbours);
+            if(cubes[col-1][row].state == STATE_REST && cubes[col-1][row].getTexture() == cube.getTexture() && !neighbours.containsKey(new Position(col-1, row).toString())){
+                neighbours = findNeighbours(col-1, row, neighbours);
             }
         }
         if(col < columns-1){
-            if(cubes[row][col+1].getTexture() == cube.getTexture() && !neighbours.containsKey(new Position(row, col+1).toString())){
-                neighbours = findNeighbours(row, col+1, neighbours);
+            if(cubes[col+1][row].state == STATE_REST && cubes[col+1][row].getTexture() == cube.getTexture() && !neighbours.containsKey(new Position(col+1, row).toString())){
+                neighbours = findNeighbours(col+1, row, neighbours);
             }
         }
         return neighbours;

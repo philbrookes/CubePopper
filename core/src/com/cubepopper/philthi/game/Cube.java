@@ -5,28 +5,28 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 
 public class Cube {
-    public final int STATE_REST=0;
-    public final int STATE_FALLING=1;
-    public final int STATE_REMOVING=2;
-    public final int STATE_REMOVED=3;
+    public static final int STATE_REST=0;
+    public static final int STATE_FALLING=1;
+    public static final int STATE_REMOVED=3;
     private Texture texture;
     public Position pos;
     public Position gridPos;
-    public Position desiredPos;
     public Size size;
     public float scale;
     public int state=STATE_REST;
-    public int fallSpeed=200;
+    public int moveSpeed =1000;
     public int scaleSpeed=1;
+    public String type="";
 
-    public Cube(Texture texture) {
+    public Cube(Texture texture, String type) {
+        this.type = type;
         this.texture = texture;
-        this.desiredPos = this.pos = new Position();
+        this.pos = new Position();
         this.size = new Size(texture.getWidth(), texture.getHeight());
     }
 
-    public Cube(Texture texture, float scale) {
-        this(texture);
+    public Cube(Texture texture, String type, float scale) {
+        this(texture, type);
         this.scale = scale;
         this.size.width = texture.getWidth();
         this.size.height = texture.getHeight();
@@ -38,23 +38,23 @@ public class Cube {
     }
 
     public Cube clone() {
-        Cube clone = new Cube(this.texture, this.scale);
+        Cube clone = new Cube(this.texture, this.type, this.scale);
 
         clone.size = new Size(this.size.width, this.size.height);
         clone.gridPos = new Position((int)this.gridPos.x, (int)this.gridPos.y);
         clone.pos = new Position((int)this.pos.x, (int)this.pos.y);
-        clone.fallSpeed = fallSpeed;
+        clone.moveSpeed = moveSpeed;
         clone.scaleSpeed = scaleSpeed;
         clone.state = state;
 
         return clone;
     }
 
-    public void Draw(Batch batch, float xOff, float yOff) {
+    public void Draw(Batch batch) {
         batch.draw(
             this.texture,
-            xOff + (gridPos.x * this.scaledSize().width),
-            yOff + (gridPos.y * this.scaledSize().height) + this.pos.y,
+            pos.x,
+            pos.y,
             this.scaledSize().width,
             this.scaledSize().height
         );
@@ -65,38 +65,17 @@ public class Cube {
     }
 
     public void Process(float timeElapsed){
-        if(state != STATE_REST) {
-            Gdx.app.debug("cube popper", "processing cube at " + gridPos + ": state >" + state);
-        }
-        switch (state){
-            case STATE_FALLING:
-                if(pos.y > 0){
-                    pos.y -= fallSpeed * timeElapsed;
-                }
-                if(pos.y <= 0) {
-                    pos.y = 0;
-                    state = STATE_REST;
-                }
-                break;
-            case STATE_REMOVING:
-                scale -= scaleSpeed * timeElapsed;
-                Gdx.app.debug("cube popper", "scale: " + scale);
-                if (scale <= 0){
-                    scale = 0;
-                    state = STATE_REMOVED;
-                }
-                break;
-            case STATE_REST:
-            default:
-                break;
+        Position dest = new Position(gridPos.x * scaledSize().width, gridPos.y * scaledSize().height);
+        if(pos.approach(dest, (this.moveSpeed * timeElapsed))){
+            state = STATE_REST;
+            moveSpeed = 1000;
+        } else {
+            state = STATE_FALLING;
+            moveSpeed += 20;
         }
     }
 
-    public void Fall() {
-        this.state = STATE_FALLING;
-    }
-
-    public void Remove() {
-        this.state = STATE_REMOVING;
+    public String toString(){
+        return "[" + type.substring(0, 1).toUpperCase() + "]";
     }
 }

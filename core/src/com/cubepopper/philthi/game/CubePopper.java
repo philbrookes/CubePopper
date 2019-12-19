@@ -16,7 +16,7 @@ public class CubePopper extends ApplicationAdapter {
 	public void create () {
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
 		batch = new SpriteBatch();
-		grid = new CubeGrid(8, 8, batch);
+		grid = new CubeGrid(13, 8, batch);
 		Gdx.input.setInputProcessor(new InputAdapter(){
 			@Override
 			public boolean touchDown(int screenX, int screenY, int pointer, int button) {

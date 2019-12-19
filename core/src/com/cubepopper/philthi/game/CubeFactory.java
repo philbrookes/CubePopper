@@ -1,5 +1,6 @@
 package com.cubepopper.philthi.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import java.util.Random;
 
@@ -10,7 +11,7 @@ public class CubeFactory {
     protected Texture topaz = new Texture("topaz.png");
 
     public Cube LoadCube(CubeConfig config) {
-        return new Cube(this.getTexture(config.type), 0.25f);
+        return new Cube(this.getTexture(config.type), config.type,0.25f);
     }
 
     private Texture getTexture(String name) {
@@ -25,6 +26,14 @@ public class CubeFactory {
             default:
                 return crystal;
         }
+    }
+
+    public Cube RandomCube(CubeConfig[] cubes, Position gridPos){
+        Cube cube = RandomCube(cubes);
+
+        cube.gridPos = gridPos;
+        cube.pos = new Position(gridPos.x * cube.scaledSize().width, gridPos.y * cube.scaledSize().height);
+        return cube;
     }
 
     public Cube RandomCube(CubeConfig[] cubes) {
