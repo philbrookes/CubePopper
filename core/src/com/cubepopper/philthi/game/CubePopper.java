@@ -22,11 +22,19 @@ public class CubePopper extends ApplicationAdapter {
 		font.getData().setScale(4.0f);
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
 		batch = new SpriteBatch();
-		grid = new CubeGrid(12, 8, batch);
+		final float scale = 0.33f;
+		CubeConfig[] spawnables = new CubeConfig[]{
+				new CubeConfig("crystal", scale),
+				new CubeConfig("ruby", scale),
+				new CubeConfig("sand", scale),
+				new CubeConfig("topaz", scale),
+				new CubeConfig("dropper", scale, 15, 15, false),
+		};
+		grid = new CubeGrid(18, 8, batch, spawnables);
 		Gdx.input.setInputProcessor(new InputAdapter(){
 			@Override
 			public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-				grid.touch(screenX, Gdx.graphics.getBackBufferHeight() - screenY);
+				grid.touch(screenX, Gdx.graphics.getBackBufferHeight() - screenY, scale);
 				return true;
 			}
 		});

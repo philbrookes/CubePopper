@@ -23,4 +23,6 @@ public interface CubeInterface {
     public boolean touchHandled(int col, int row);
 
     public boolean atRest();
+
+    public boolean onDelete();
 }

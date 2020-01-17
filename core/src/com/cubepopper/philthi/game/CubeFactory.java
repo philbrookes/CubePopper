@@ -35,23 +35,29 @@ public class CubeFactory {
     }
 
 
-    public CubeInterface RandomCube(CubeConfig[] cubes, Position gridPos){
-        CubeInterface cube = RandomCube(cubes);
+    public CubeInterface RandomCube(CubeConfig[] cubes, Position gridPos, boolean isPopulate){
+        CubeInterface cube = RandomCube(cubes, isPopulate);
 
         cube.setGridPos(gridPos);
         cube.setPos(new Position(gridPos.x * cube.scaledSize().width, gridPos.y * cube.scaledSize().height));
         return cube;
     }
 
-    public CubeInterface RandomCube(CubeConfig[] cubes) {
+    public CubeInterface RandomCube(CubeConfig[] cubes, boolean isPopulate) {
         int totalChances=0;
         //add up all the weights
         for(CubeConfig cube: cubes){
+            if(isPopulate && !cube.inPopulate){
+                continue;
+            }
             totalChances += cube.spawnWeight;
         }
         Random rand = new Random();
         int n = rand.nextInt(totalChances);
         for(CubeConfig cube: cubes){
+            if(isPopulate && !cube.inPopulate){
+                continue;
+            }
             n -= cube.spawnWeight;
             if(n<=0){
                 return this.LoadCube(cube);

@@ -43,4 +43,9 @@ public class DropperCube extends PopCube {
         }
         return true;
     }
+
+    @Override
+    public boolean onDelete() {
+        return false;
+    }
 }

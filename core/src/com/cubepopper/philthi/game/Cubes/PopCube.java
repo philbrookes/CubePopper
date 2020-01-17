@@ -66,7 +66,7 @@ public class PopCube implements CubeInterface{
             atRest();
         } else {
             state = STATE_FALLING;
-            moveSpeed += 20;
+            moveSpeed += 50;
         }
     }
 
@@ -105,6 +105,11 @@ public class PopCube implements CubeInterface{
 
     @Override
     public boolean atRest() {
+        return false;
+    }
+
+    @Override
+    public boolean onDelete() {
         return false;
     }
 

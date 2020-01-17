@@ -25,12 +25,14 @@ public class CubeGrid {
 
     private int score = 0;
 
+    private CubeConfig[] spawnCubes;
+
     public void dispose() {
         cf.dispose();
     }
 
-    public CubeGrid(int rows, int columns, Batch batch) {
-        this();
+    public CubeGrid(int rows, int columns, Batch batch, CubeConfig[] spawnCubes) {
+        this(spawnCubes);
         this.rows = rows;
         this.columns = columns;
         this.cubes = new PopCube[columns][rows];
@@ -39,14 +41,9 @@ public class CubeGrid {
         position();
     }
 
-    private CubeGrid() {
+    private CubeGrid(CubeConfig[] spawnCubes) {
+        this.spawnCubes = spawnCubes;
         this.cf = new CubeFactory();
-        crystal = new CubeConfig("crystal", 0.25f);
-        ruby = new CubeConfig("ruby", 0.25f);
-        sand = new CubeConfig("sand", 0.25f);
-        topaz = new CubeConfig("topaz", 0.25f);
-        dropper = new CubeConfig("dropper", 0.25f, 60);
-        dropper.score = 15;
     }
 
     public int getScore(){
@@ -85,8 +82,8 @@ public class CubeGrid {
     }
 
     public void deleteCube(int delCol, int delRow){
-        CubeConfig[] configs = new CubeConfig[]{crystal, ruby, sand, topaz, dropper};
         score += cubes[delCol][delRow].getConfig().score;
+        cubes[delCol][delRow].onDelete();
         cubes[delCol][delRow] = null;
         //update the column, to fall down
         for(int row=delRow;row<=rows-1;row++) {
@@ -95,17 +92,16 @@ public class CubeGrid {
                 cubes[delCol][row] = cubes[delCol][row + 1].clone();
                 cubes[delCol][row].setGridPos(new Position(delCol, row));
             } else { //top row, generate new cube
-                cubes[delCol][row] = cf.RandomCube(configs, new Position(delCol, row));
+                cubes[delCol][row] = cf.RandomCube(spawnCubes, new Position(delCol, row), false);
                 cubes[delCol][row].getPos().y = cubes[delCol][row-1].getPos().y + (cubes[delCol][row].scaledSize().height * 2);
             }
         }
     }
 
     private void populate() {
-        CubeConfig[] configs = new CubeConfig[]{crystal, ruby, sand, topaz};
         for(int row=0;row<rows;row++) {
             for (int col=0;col<columns;col++){
-                cubes[col][row] = cf.RandomCube(configs, new Position(col, row));
+                cubes[col][row] = cf.RandomCube(spawnCubes, new Position(col, row), true);
             }
         }
     }
@@ -132,9 +128,9 @@ public class CubeGrid {
         }
     }
 
-    public boolean touch(int touchX, int touchY){
-        int col = (touchX - xOff) / (int)(cf.LoadCube(new CubeConfig("ruby", 0.25f)).scaledSize().width);
-        int row = (touchY - yOff) / (int)(cf.LoadCube(new CubeConfig("ruby", 0.25f)).scaledSize().height);
+    public boolean touch(int touchX, int touchY, float scale){
+        int col = (touchX - xOff) / (int)(cf.LoadCube(new CubeConfig("ruby", scale)).scaledSize().width);
+        int row = (touchY - yOff) / (int)(cf.LoadCube(new CubeConfig("ruby", scale)).scaledSize().height);
         if(col < 0 || col > columns-1 || row < 0 || row > rows-1){
             return false;
         }
