@@ -10,11 +10,14 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
+import com.cubepopper.philthi.game.Level.Goal;
+import com.cubepopper.philthi.game.Level.Level;
 
 public class CubePopper extends ApplicationAdapter {
 	SpriteBatch batch;
 	CubeGrid grid;
 	BitmapFont font;
+	Level level;
 	@Override
 	public void create () {
 		font = new BitmapFont();
@@ -22,19 +25,13 @@ public class CubePopper extends ApplicationAdapter {
 		font.getData().setScale(4.0f);
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
 		batch = new SpriteBatch();
-		final float scale = 0.33f;
-		CubeConfig[] spawnables = new CubeConfig[]{
-				new CubeConfig("crystal", scale),
-				new CubeConfig("ruby", scale),
-				new CubeConfig("sand", scale),
-				new CubeConfig("topaz", scale),
-				new CubeConfig("dropper", scale, 15, 15, false),
-		};
-		grid = new CubeGrid(18, 8, batch, spawnables);
+		level = new Level();
+
+		grid = new CubeGrid(level, batch);
 		Gdx.input.setInputProcessor(new InputAdapter(){
 			@Override
 			public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-				grid.touch(screenX, Gdx.graphics.getBackBufferHeight() - screenY, scale);
+				grid.touch(screenX, Gdx.graphics.getBackBufferHeight() - screenY);
 				return true;
 			}
 		});
@@ -49,7 +46,11 @@ public class CubePopper extends ApplicationAdapter {
 		batch.end();
 
 		batch.begin();
-		font.draw(batch, "Score: " + grid.getScore(), 0, -10);
+		int i=0;
+		for(Goal goal: level.getGoals()){
+			i++;
+			font.draw(batch, goal.toString(), 0, 30+(i*-45));
+		}
 
 		batch.end();
 	}
