@@ -21,7 +21,7 @@ public class CubeFactory {
         Textures.put("crystal", new Texture("crystal.png"));
         Textures.put("sand", new Texture("sand.png"));
         Textures.put("topaz", new Texture("topaz.png"));
-        Textures.put("dropper", new Texture("space/png/Bonus_Items/Hero_Speed_Debuff.png"));
+        Textures.put("dropper", new Texture("space/png/Bonus_Items/HP_Bonus.png"));
     }
 
     public CubeInterface LoadCube(CubeConfig config) {
@@ -63,7 +63,6 @@ public class CubeFactory {
                 return this.LoadCube(cube);
             }
         }
-        Gdx.app.error("cube popper", "random cube is not random");
         return this.LoadCube(cubes[0]);
 
     }

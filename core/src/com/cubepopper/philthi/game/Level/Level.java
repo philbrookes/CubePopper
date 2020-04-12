@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class Level {
+    private static final float TIME_LIMIT=60.0f;
     protected int id;
     protected String name;
     protected Level next;
@@ -20,6 +21,9 @@ public class Level {
     protected int currentScore = 0;
     protected int maxScore = 0;
     protected Goal[] goals;
+    protected float timeLimit = TIME_LIMIT;
+    protected float timeExpired = 0.0f;
+
      public Level(){
          id = 1;
          name = "init";
@@ -30,20 +34,47 @@ public class Level {
              new CubeConfig("topaz", scale, 100),
              new CubeConfig("dropper", scale, 15, 15, false),
          };
-         goals = new Goal[]{
-                 new Goal(Goal.SCORE, "score", 200),
-                 new Goal(Goal.CUBE_POPPED_COUNT, "ships", 5, "dropper"),
-         };
+         goals = new Goal[]{new Goal(Goal.SCORE, "score")};
      }
 
-     public boolean complete(){
-         for(Goal goal: goals){
-             if(!goal.complete()){
-                 return false;
-             }
-         }
-         return true;
-     }
+    public boolean complete(){
+        for(Goal goal: goals){
+            if(!goal.complete()){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean outOfTime() {
+         return timeLimit <= timeExpired;
+    }
+
+    public void restart(){
+         this.timeExpired = 0;
+         this.timeLimit = TIME_LIMIT;
+         this.currentScore = 0;
+        for(Goal goal: goals){
+            goal.restart();
+        }
+    }
+
+
+    public void increaseTimeLimit(float bonus) {
+        this.timeLimit += bonus;
+    }
+
+    public void usedTime(float time) {
+        this.timeExpired += time;
+    }
+
+    public float getTimeLimit() {
+         return this.timeLimit;
+    }
+
+    public float getTimeExpired() {
+         return timeExpired;
+    }
 
     public void popped(CubeInterface cube) {
         currentScore += cube.getConfig().score;
@@ -53,6 +84,10 @@ public class Level {
             } else if (goal.type == goal.CUBE_POPPED_COUNT && goal.cubeType == cube.getConfig().type){
                 goal.currentValue += 1;
             }
+        }
+
+        if(cube.getConfig().type == "dropper") {
+            this.increaseTimeLimit(5.0f);
         }
     }
 

@@ -39,6 +39,11 @@ public class CubeGrid {
         this.cf = new CubeFactory();
     }
 
+    public void restart(){
+        populate();
+        position();
+    }
+
     public void removeCubes(Collection<Position> positions) {
         for(int i=level.getRows()-1;i>=0;i--){
             for (Position pos:positions) {
@@ -71,6 +76,7 @@ public class CubeGrid {
     }
 
     public void deleteCube(int delCol, int delRow){
+        CubeInterface fancyBlock = cubes[delCol][delRow].clone();
         level.popped(cubes[delCol][delRow]);
         cubes[delCol][delRow].onDelete();
         cubes[delCol][delRow] = null;
