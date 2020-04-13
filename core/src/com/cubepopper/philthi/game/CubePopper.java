@@ -4,6 +4,7 @@ import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -31,9 +32,11 @@ public class CubePopper extends ApplicationAdapter {
 	String last_state = "";
 	Map<String, Texture> textures;
 	ProgressBar countdown;
+	FileHandle topScore;
 
 	@Override
 	public void create () {
+		topScore = Gdx.files.local("topscore.txt");
 		textures = new HashMap<>();
 		textures.put("menu_background", new Texture("menu_background.png"));
 		textures.put("button", new Texture("b_3.png"));
@@ -300,6 +303,13 @@ public class CubePopper extends ApplicationAdapter {
 		drawCenteredText(batch, "Help", 925, new Color(1.0f, 0.5f, 0.0f, 1.0f));
 		drawCenteredText(batch, "Credits", 725, new Color(1.0f, 0.5f, 0.0f, 1.0f));
 
+		try {
+			if (!topScore.readString().equals("")) {
+				drawCenteredText(batch, "Top Score: " + topScore.readString(), 550, new Color(1.0f, 0.5f, 0.0f, 1.0f));
+			}
+		} catch(Exception e) {
+			//do nothing
+		}
 		batch.end();
 	}
 
@@ -330,6 +340,24 @@ public class CubePopper extends ApplicationAdapter {
 		drawCenteredText(batch, "Help", 925, new Color(1.0f, 0.5f, 0.0f, 1.0f));
 		drawCenteredText(batch, "Credits", 725, new Color(1.0f, 0.5f, 0.0f, 1.0f));
 		drawCenteredText(batch, "score: " + level.getCurrentScore(), 500, new Color(0,0,0,1));
+		try {
+			String recStr = topScore.readString();
+			if (!recStr.equals("")) {
+				int record = Integer.parseInt(recStr);
+				if (level.getCurrentScore() > record) {
+					topScore.writeString(String.valueOf(level.getCurrentScore()), false);
+				}
+			}
+		}catch(Exception e){
+			topScore.writeString(String.valueOf(level.getCurrentScore()), false);
+		}
+		try {
+			if (!topScore.readString().equals("")) {
+				drawCenteredText(batch, "Top Score: " + topScore.readString(), 350, new Color(1.0f, 0.5f, 0.0f, 1.0f));
+			}
+		} catch(Exception e) {
+			//do nothing
+		}
 		batch.end();
 	}
 

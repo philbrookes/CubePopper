@@ -21,7 +21,7 @@ public class CubeFactory {
         Textures.put("crystal", new Texture("crystal.png"));
         Textures.put("sand", new Texture("sand.png"));
         Textures.put("topaz", new Texture("topaz.png"));
-        Textures.put("dropper", new Texture("space/png/Bonus_Items/HP_Bonus.png"));
+        Textures.put("dropper", new Texture("time_bonus.png"));
     }
 
     public CubeInterface LoadCube(CubeConfig config) {
