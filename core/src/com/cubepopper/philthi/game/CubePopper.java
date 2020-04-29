@@ -51,7 +51,6 @@ public class CubePopper extends ApplicationAdapter {
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
 		batch = new SpriteBatch();
 		level = new Level();
-		level.addScore(50);
 		countdown = new ProgressBar(0, level.getTimeLimit(), 0.1f, false, new ProgressBar.ProgressBarStyle());
 		countdown.getStyle().background = new TextureRegionDrawable(textures.get("pb_back"));
 		countdown.setWidth(Gdx.graphics.getWidth()-100);

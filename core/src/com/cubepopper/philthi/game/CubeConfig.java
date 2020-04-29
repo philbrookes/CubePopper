@@ -6,7 +6,9 @@ public class CubeConfig {
     public int spawnWeight = 100;
     public int score = 1;
     public int popGoal = 0;
+    public float timeBonus = 0;
     public boolean inPopulate = true;
+    public boolean doesSpawn = true;
 
     public CubeConfig(String type, float scale){
         this.type = type;
@@ -23,5 +25,13 @@ public class CubeConfig {
     public CubeConfig(String type, float scale, int spawnWeight, int score, boolean inPopulate){
         this(type, scale, spawnWeight, score);
         this.inPopulate = inPopulate;
+    }
+    public CubeConfig(String type, float scale, int spawnWeight, int score, boolean inPopulate, float timeBonus){
+        this(type, scale, spawnWeight, score, inPopulate);
+        this.timeBonus = timeBonus;
+    }
+    public CubeConfig(String type, float scale, int spawnWeight, int score, boolean inPopulate, float timeBonus, boolean doesSpawn){
+        this(type, scale, spawnWeight, score, inPopulate, timeBonus);
+        this.doesSpawn = doesSpawn;
     }
 }

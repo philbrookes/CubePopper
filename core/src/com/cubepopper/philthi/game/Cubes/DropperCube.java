@@ -6,6 +6,8 @@ import com.cubepopper.philthi.game.CubeConfig;
 import com.cubepopper.philthi.game.Position;
 import com.cubepopper.philthi.game.Size;
 
+import java.util.HashMap;
+
 public class DropperCube extends PopCube {
     public DropperCube(Texture texture, CubeConfig config) {
         super(texture, config);
@@ -17,8 +19,8 @@ public class DropperCube extends PopCube {
     }
 
     @Override
-    public boolean touchHandled(int col, int row) {
-        super.touchHandled(col, row);
+    public boolean touchHandled(HashMap<String, Position> neighbours, int col, int row) {
+        super.touchHandled(neighbours, col, row);
         Gdx.app.debug("cube popper", "dropper touch");
         return true;
     }
@@ -26,15 +28,21 @@ public class DropperCube extends PopCube {
     @Override
     public DropperCube clone() {
         DropperCube clone = new DropperCube(this.texture, this.config);
-        clone.size = new Size(this.size.width, this.size.height);
-        clone.gridPos = new Position((int)this.gridPos.x, (int)this.gridPos.y);
-        clone.pos = new Position((int)this.pos.x, (int)this.pos.y);
-        clone.moveSpeed = moveSpeed;
-        clone.scaleSpeed = scaleSpeed;
-        clone.state = state;
-
+        cloneInto(clone);
         return clone;
     }
+
+    public void cloneInto(CubeInterface dest) {
+        DropperCube d = (DropperCube)dest;
+        d.size = new Size(this.size.width, this.size.height);
+        d.gridPos = new Position((int)this.gridPos.x, (int)this.gridPos.y);
+        d.pos = new Position((int)this.pos.x, (int)this.pos.y);
+        d.moveSpeed = moveSpeed;
+        d.scaleSpeed = scaleSpeed;
+        d.state = state;
+        return;
+    }
+
 
     @Override
     public boolean atRest() {

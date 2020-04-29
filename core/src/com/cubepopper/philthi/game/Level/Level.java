@@ -4,6 +4,7 @@ import com.cubepopper.philthi.game.CubeConfig;
 import com.cubepopper.philthi.game.Cubes.CubeInterface;
 import com.cubepopper.philthi.game.Cubes.PopCube;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +33,8 @@ public class Level {
              new CubeConfig("ruby", scale, 100),
              new CubeConfig("sand", scale, 100),
              new CubeConfig("topaz", scale, 100),
-             new CubeConfig("dropper", scale, 15, 15, false),
+             new CubeConfig("dropper", scale, 15, 15, false, 5.0f),
+             new CubeConfig("super_dropper", scale, 0, 100, false, 25.0f, false),
          };
          goals = new Goal[]{new Goal(Goal.SCORE, "score")};
      }
@@ -86,13 +88,33 @@ public class Level {
             }
         }
 
-        if(cube.getConfig().type == "dropper") {
-            this.increaseTimeLimit(5.0f);
-        }
+        this.increaseTimeLimit(cube.getConfig().timeBonus);
     }
+
+    public CubeConfig[] getSpawnCubes() {
+         ArrayList<CubeConfig> retCubes = new ArrayList<CubeConfig>();
+        for(CubeConfig cube: cubes){
+            if(cube.doesSpawn) {
+                retCubes.add(cube);
+            }
+        }
+        CubeConfig[] simpleCubes = new CubeConfig[retCubes.size()];
+        retCubes.toArray(simpleCubes);
+        return simpleCubes;
+     }
 
     public CubeConfig[] getCubes() {
         return cubes;
+    }
+
+    public CubeConfig getCubeConfig(String type) {
+        for (CubeConfig cube: cubes) {
+            if(cube.type == type) {
+                return cube;
+            }
+        }
+
+        return new CubeConfig("", 0.0f);
     }
 
     public float getScale() {

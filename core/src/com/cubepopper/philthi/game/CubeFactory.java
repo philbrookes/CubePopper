@@ -22,11 +22,13 @@ public class CubeFactory {
         Textures.put("sand", new Texture("sand.png"));
         Textures.put("topaz", new Texture("topaz.png"));
         Textures.put("dropper", new Texture("time_bonus.png"));
+        Textures.put("super_dropper", new Texture("super_time_bonus.png"));
     }
 
     public CubeInterface LoadCube(CubeConfig config) {
         switch(config.type){
             case "dropper":
+            case "super_dropper":
                 return new DropperCube(Textures.get(config.type), config);
             default:
                 return new PopCube(Textures.get(config.type), config);
@@ -47,7 +49,7 @@ public class CubeFactory {
         int totalChances=0;
         //add up all the weights
         for(CubeConfig cube: cubes){
-            if(isPopulate && !cube.inPopulate){
+            if(isPopulate && !cube.inPopulate || !cube.doesSpawn){
                 continue;
             }
             totalChances += cube.spawnWeight;
@@ -55,7 +57,7 @@ public class CubeFactory {
         Random rand = new Random();
         int n = rand.nextInt(totalChances);
         for(CubeConfig cube: cubes){
-            if(isPopulate && !cube.inPopulate){
+            if(isPopulate && !cube.inPopulate || !cube.doesSpawn){
                 continue;
             }
             n -= cube.spawnWeight;
@@ -73,5 +75,6 @@ public class CubeFactory {
         Textures.get("sand").dispose();
         Textures.get("topaz").dispose();
         Textures.get("dropper").dispose();
+        Textures.get("super_dropper").dispose();
     }
 }

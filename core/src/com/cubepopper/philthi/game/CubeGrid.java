@@ -4,11 +4,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Matrix4;
 import com.cubepopper.philthi.game.Cubes.CubeInterface;
+import com.cubepopper.philthi.game.Cubes.DropperCube;
 import com.cubepopper.philthi.game.Cubes.PopCube;
 import com.cubepopper.philthi.game.Level.Level;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Random;
 
 import static com.cubepopper.philthi.game.Cubes.PopCube.STATE_REMOVED;
 import static com.cubepopper.philthi.game.Cubes.PopCube.STATE_REST;
@@ -19,6 +23,8 @@ public class CubeGrid {
 
     private CubeFactory cf;
     private Batch batch;
+
+    private int minClusterSize = 2;
 
     private int xOff=0, yOff=0;
 
@@ -76,7 +82,6 @@ public class CubeGrid {
     }
 
     public void deleteCube(int delCol, int delRow){
-        CubeInterface fancyBlock = cubes[delCol][delRow].clone();
         level.popped(cubes[delCol][delRow]);
         cubes[delCol][delRow].onDelete();
         cubes[delCol][delRow] = null;
@@ -87,7 +92,7 @@ public class CubeGrid {
                 cubes[delCol][row] = cubes[delCol][row + 1].clone();
                 cubes[delCol][row].setGridPos(new Position(delCol, row));
             } else { //top row, generate new cube
-                cubes[delCol][row] = cf.RandomCube(level.getCubes(), new Position(delCol, row), false);
+                cubes[delCol][row] = cf.RandomCube(level.getSpawnCubes(), new Position(delCol, row), false);
                 cubes[delCol][row].getPos().y = cubes[delCol][row-1].getPos().y + (cubes[delCol][row].scaledSize().height * 2);
             }
         }
@@ -96,7 +101,7 @@ public class CubeGrid {
     private void populate() {
         for(int row=0;row<level.getRows();row++) {
             for (int col=0;col<level.getColumns();col++){
-                cubes[col][row] = cf.RandomCube(level.getCubes(), new Position(col, row), true);
+                cubes[col][row] = cf.RandomCube(level.getSpawnCubes(), new Position(col, row), true);
             }
         }
     }
@@ -109,7 +114,60 @@ public class CubeGrid {
         yOff = (Gdx.graphics.getBackBufferHeight() - height) / 2;
     }
 
+    private void checkValidMoves(){
+        for (int col = 0; col < level.getColumns(); col++) {
+            for (int row = 0; row < level.getRows(); row++) {
+                CubeInterface cube = cubes[col][row];
+                //cubes are still moving, abort check
+                if(cube.getState() != STATE_REST) {
+                    return;
+                }
+
+                //cannot be touched, so ignore testing for moves
+                if(cube.getConfig().type == "super_dropper"){
+                    continue;
+                }
+
+                //check for a valid move and return if found
+                HashMap<String, Position> neighbours = findNeighbours(col, row, new HashMap<String, Position>());
+                if(cube.getConfig().type != "dropper" && neighbours.size() >= minClusterSize) {
+                    return;
+                }
+                if(cube.getConfig().type == "dropper" && neighbours.size() >= 5) {
+                    return;
+                }
+            }
+        }
+
+        //if we got here, there are no valid moves left
+        shuffleBoard();
+        logGrid();
+    }
+
+    private void shuffleBoard(){
+        ArrayList<CubeInterface> cubeLine = new ArrayList<CubeInterface>();
+
+        for (int col = 0; col < level.getColumns(); col++) {
+            for (int row = 0; row < level.getRows(); row++) {
+                cubeLine.add(cubes[col][row]);
+            }
+        }
+
+        Collections.shuffle(cubeLine);
+
+        int i=0;
+        for (int col = 0; col < level.getColumns(); col++) {
+            for (int row = 0; row < level.getRows(); row++) {
+                cubeLine.get(i).setGridPos(new Position(col, row));
+                cubes[col][row] = cubeLine.get(i);
+                i++;
+            }
+        }
+
+    }
+
     public void draw() {
+        checkValidMoves();
         Matrix4 offset = new Matrix4().trn(xOff, yOff, 0);
         batch.setTransformMatrix(offset);
         for (int col = 0; col < level.getColumns(); col++) {
@@ -129,11 +187,26 @@ public class CubeGrid {
         if(col < 0 || col > level.getColumns()-1 || row < 0 || row > level.getRows()-1){
             return false;
         }
-        if(!cubes[col][row].touchHandled(col, row)) {
-            HashMap<String, Position> neighbours = findNeighbours(col, row, new HashMap<String, Position>());
-            if (neighbours.values().size() >= 2) {
+        HashMap<String, Position> neighbours = findNeighbours(col, row, new HashMap<String, Position>());
+        if(!cubes[col][row].touchHandled(neighbours, col, row)) {
+            if (neighbours.values().size() >= minClusterSize) {
                 removeCubes(neighbours.values());
             }
+            return true;
+        }
+        if(cubes[col][row].getConfig().type == "dropper"){
+            if (neighbours.values().size() >= 5) {
+                DropperCube superCube = (DropperCube) cf.LoadCube(level.getCubeConfig("super_dropper"));
+                cubes[col][row].cloneInto(superCube);
+                removeCubes(neighbours.values());
+                int rowId=row;
+                while(rowId > 0 && neighbours.containsKey(new Position(col, rowId-1).toString())){
+                    rowId--;
+                }
+                superCube.setGridPos(new Position(col, rowId));
+                cubes[col][rowId] = superCube;
+            }
+            return true;
         }
         return true;
     }

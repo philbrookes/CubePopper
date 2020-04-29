@@ -6,6 +6,8 @@ import com.cubepopper.philthi.game.CubeConfig;
 import com.cubepopper.philthi.game.Position;
 import com.cubepopper.philthi.game.Size;
 
+import java.util.HashMap;
+
 public class PopCube implements CubeInterface{
     public static final int STATE_REST=0;
     public static final int STATE_FALLING=1;
@@ -42,6 +44,17 @@ public class PopCube implements CubeInterface{
         clone.state = state;
 
         return clone;
+    }
+
+    public void cloneInto(CubeInterface dest) {
+        PopCube d = (PopCube)dest;
+        d.size = new Size(this.size.width, this.size.height);
+        d.gridPos = new Position((int)this.gridPos.x, (int)this.gridPos.y);
+        d.pos = new Position((int)this.pos.x, (int)this.pos.y);
+        d.moveSpeed = moveSpeed;
+        d.scaleSpeed = scaleSpeed;
+        d.state = state;
+        return;
     }
 
     public void Draw(Batch batch) {
@@ -96,10 +109,14 @@ public class PopCube implements CubeInterface{
 
     @Override
     public int getState() {
+        Position dest = new Position(gridPos.x * scaledSize().width, gridPos.y * scaledSize().height);
+        if(pos.distance(dest) > 0){
+            state = STATE_FALLING;
+        }
         return state;
     }
 
-    public boolean touchHandled(int col, int row) {
+    public boolean touchHandled(HashMap<String, Position> neighbours, int col, int row) {
         return false;
     }
 

@@ -6,8 +6,11 @@ import com.cubepopper.philthi.game.CubeConfig;
 import com.cubepopper.philthi.game.Position;
 import com.cubepopper.philthi.game.Size;
 
+import java.util.HashMap;
+
 public interface CubeInterface {
-    public PopCube clone();
+    public CubeInterface clone();
+    public void cloneInto(CubeInterface dest);
     public void Draw(Batch batch);
     public Size scaledSize();
     public void Process(float timeElapsed);
@@ -20,7 +23,7 @@ public interface CubeInterface {
     public Texture getTexture();
     public CubeConfig getConfig();
 
-    public boolean touchHandled(int col, int row);
+    public boolean touchHandled(HashMap<String, Position> neighbours, int col, int row);
 
     public boolean atRest();
 
