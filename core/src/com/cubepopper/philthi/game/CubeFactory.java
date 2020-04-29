@@ -25,6 +25,14 @@ public class CubeFactory {
         Textures.put("super_dropper", new Texture("super_time_bonus.png"));
     }
 
+    public DropperCube LoadDropper() {
+        return (DropperCube) LoadCube(new CubeConfig("dropper", 0.33f, 0, 15, false, 5.0f, false));
+    }
+
+    public DropperCube LoadSuperDropper() {
+        return (DropperCube) LoadCube(new CubeConfig("super_dropper", 0.33f, 0, 15, false, 5.0f, false));
+    }
+
     public CubeInterface LoadCube(CubeConfig config) {
         switch(config.type){
             case "dropper":

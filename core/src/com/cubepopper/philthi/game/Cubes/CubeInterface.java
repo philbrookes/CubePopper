@@ -3,6 +3,7 @@ package com.cubepopper.philthi.game.Cubes;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.cubepopper.philthi.game.CubeConfig;
+import com.cubepopper.philthi.game.CubeFactory;
 import com.cubepopper.philthi.game.Position;
 import com.cubepopper.philthi.game.Size;
 
@@ -22,6 +23,9 @@ public interface CubeInterface {
     public int getState();
     public Texture getTexture();
     public CubeConfig getConfig();
+    public Boolean isSuperPop(int clusterSize);
+    public CubeInterface SuperPop(int clusterSize, CubeFactory cf) throws UnknownClusterSizeException;
+    public int minClusterPop();
 
     public boolean touchHandled(HashMap<String, Position> neighbours, int col, int row);
 

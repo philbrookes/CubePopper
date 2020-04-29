@@ -3,6 +3,7 @@ package com.cubepopper.philthi.game.Cubes;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.cubepopper.philthi.game.CubeConfig;
+import com.cubepopper.philthi.game.CubeFactory;
 import com.cubepopper.philthi.game.Position;
 import com.cubepopper.philthi.game.Size;
 
@@ -69,6 +70,22 @@ public class PopCube implements CubeInterface{
 
     public Size scaledSize() {
         return new Size(size.width * scale, size.height * scale);
+    }
+
+    public CubeInterface SuperPop(int clusterSize, CubeFactory cf) throws UnknownClusterSizeException {
+        if(clusterSize >= 25) {
+            return cf.LoadDropper();
+        }
+        throw new UnknownClusterSizeException();
+    }
+
+    @Override
+    public int minClusterPop() {
+        return 2;
+    }
+
+    public Boolean isSuperPop(int clusterSize) {
+        return clusterSize >= 25;
     }
 
     public void Process(float timeElapsed){

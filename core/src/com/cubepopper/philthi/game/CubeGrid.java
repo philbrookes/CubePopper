@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.cubepopper.philthi.game.Cubes.CubeInterface;
 import com.cubepopper.philthi.game.Cubes.DropperCube;
 import com.cubepopper.philthi.game.Cubes.PopCube;
+import com.cubepopper.philthi.game.Cubes.UnknownClusterSizeException;
 import com.cubepopper.philthi.game.Level.Level;
 
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public class CubeGrid {
         for(int i=level.getRows()-1;i>=0;i--){
             for (Position pos:positions) {
                 if((int)pos.y == i){
-                    deleteCube((int)pos.x, (int)pos.y);
+                    deleteCube((int)pos.x, (int)pos.y, false);
                 }
             }
         }
@@ -81,10 +82,13 @@ public class CubeGrid {
         }
     }
 
-    public void deleteCube(int delCol, int delRow){
+    public void deleteCube(int delCol, int delRow, boolean noDrop){
         level.popped(cubes[delCol][delRow]);
         cubes[delCol][delRow].onDelete();
         cubes[delCol][delRow] = null;
+        if(noDrop) {
+            return;
+        }
         //update the column, to fall down
         for(int row=delRow;row<=level.getRows()-1;row++) {
             //not top row, copy from row above
@@ -174,7 +178,7 @@ public class CubeGrid {
             for (int row = 0; row < level.getRows(); row++) {
                 cubes[col][row].Process(Gdx.graphics.getDeltaTime());
                 if(cubes[col][row].getState() == STATE_REMOVED){
-                    deleteCube(col, row);
+                    deleteCube(col, row, false);
                 }
                 cubes[col][row].Draw(batch);
             }
@@ -187,26 +191,32 @@ public class CubeGrid {
         if(col < 0 || col > level.getColumns()-1 || row < 0 || row > level.getRows()-1){
             return false;
         }
+        CubeInterface touchedCube = cubes[col][row];
         HashMap<String, Position> neighbours = findNeighbours(col, row, new HashMap<String, Position>());
-        if(!cubes[col][row].touchHandled(neighbours, col, row)) {
-            if (neighbours.values().size() >= minClusterSize) {
-                removeCubes(neighbours.values());
-            }
-            return true;
-        }
-        if(cubes[col][row].getConfig().type == "dropper"){
-            if (neighbours.values().size() >= 5) {
-                DropperCube superCube = (DropperCube) cf.LoadCube(level.getCubeConfig("super_dropper"));
-                cubes[col][row].cloneInto(superCube);
-                removeCubes(neighbours.values());
+        int clusterSize = neighbours.values().size();
+        if(touchedCube.isSuperPop(clusterSize)){
+            Gdx.app.log("CUBE POPPER", "got a super pop size: " + clusterSize);
+            try {
+                CubeInterface newCube = touchedCube.SuperPop(clusterSize, cf);
+                touchedCube.cloneInto(newCube);
                 int rowId=row;
                 while(rowId > 0 && neighbours.containsKey(new Position(col, rowId-1).toString())){
                     rowId--;
                 }
-                superCube.setGridPos(new Position(col, rowId));
-                cubes[col][rowId] = superCube;
+                newCube.setGridPos(new Position(col, rowId));
+                cubes[col][rowId] = newCube;
+//                //don't delete this cube now, as we have replaced it with a super cube
+                neighbours.remove(new Position(col, rowId).toString());
+                Gdx.app.log("CUBE POPPER", "neighbours size: " + neighbours.values().size());
+            } catch (UnknownClusterSizeException e) {
+                Gdx.app.error("CUBE POPPER", "bad sync up between isSuperPop and SuperPop in cube type: " + touchedCube.getConfig().type);
+                return true;
             }
-            return true;
+        }
+        if(!touchedCube.touchHandled(neighbours, col, row)) {
+            if(clusterSize >= touchedCube.minClusterPop()) {
+                removeCubes(neighbours.values());
+            }
         }
         return true;
     }

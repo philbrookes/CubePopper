@@ -3,6 +3,7 @@ package com.cubepopper.philthi.game.Cubes;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.cubepopper.philthi.game.CubeConfig;
+import com.cubepopper.philthi.game.CubeFactory;
 import com.cubepopper.philthi.game.Position;
 import com.cubepopper.philthi.game.Size;
 
@@ -18,11 +19,27 @@ public class DropperCube extends PopCube {
         this.scale = config.scale;
     }
 
+    public CubeInterface SuperPop(int clusterSize, CubeFactory cf)  throws UnknownClusterSizeException {
+        if(clusterSize >= 5) {
+            return cf.LoadSuperDropper();
+        }
+        throw new UnknownClusterSizeException();
+    }
+
+    public Boolean isSuperPop(int clusterSize) {
+        return clusterSize >= 5;
+    }
+
+    @Override
+    public int minClusterPop() {
+        return 5;
+    }
+
     @Override
     public boolean touchHandled(HashMap<String, Position> neighbours, int col, int row) {
         super.touchHandled(neighbours, col, row);
         Gdx.app.debug("cube popper", "dropper touch");
-        return true;
+        return false;
     }
 
     @Override
