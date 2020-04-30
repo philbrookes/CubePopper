@@ -31,6 +31,7 @@ public abstract class AbstractMenu extends ScreenAdapter {
     Texture logo;
     FileHandle topScore;
     SpriteBatch batch;
+    protected int score;
 
     public AbstractMenu(CubePopper game) {
         this.game = game;
@@ -42,7 +43,6 @@ public abstract class AbstractMenu extends ScreenAdapter {
         background = new Texture("menu_background.png");
         logo = new Texture("cube-popper-logo.png");
         topScore = Gdx.files.local("topscore.txt");
-        menu = this.buildMenu();
     }
 
     abstract protected Stage buildMenu();
@@ -60,6 +60,9 @@ public abstract class AbstractMenu extends ScreenAdapter {
         batch.begin();
         batch.draw(logo, Gdx.graphics.getWidth() / 2 - (logo.getWidth() / 2), Gdx.graphics.getHeight() - (logo.getHeight() + 100));
         drawCenteredText(batch, "Top score: " + topScore.readString(), Gdx.graphics.getHeight() - (logo.getHeight() + 300) );
+        if(score > 0) {
+            drawCenteredText(batch, "Score: " + score, Gdx.graphics.getHeight() - (logo.getHeight() + 350) );
+        }
         batch.end();
         menu.draw();
     }

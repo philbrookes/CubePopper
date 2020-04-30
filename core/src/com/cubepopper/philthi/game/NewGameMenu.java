@@ -38,7 +38,7 @@ public class NewGameMenu extends AbstractMenu {
         menu.addActor(buildButton("Exit Game", -600, new EventListener() {
             @Override
             public boolean handle(Event event) {
-                game.exitScreen();
+               Gdx.app.exit();
                 return true;
             }
         }));

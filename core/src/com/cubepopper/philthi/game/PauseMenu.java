@@ -35,6 +35,20 @@ public class PauseMenu extends AbstractMenu {
                 return true;
             }
         }));
+        menu.addActor(buildButton("Help", -600, new EventListener() {
+            @Override
+            public boolean handle(Event event) {
+                game.changeScreen(new HelpMenu(game));
+                return true;
+            }
+        }));
+        menu.addActor(buildButton("Exit Game", -900, new EventListener() {
+            @Override
+            public boolean handle(Event event) {
+                Gdx.app.exit();
+                return true;
+            }
+        }));
         return menu;
     }
 }

@@ -98,7 +98,7 @@ public class GameScreen extends ScreenAdapter {
         countdown.act(Gdx.graphics.getDeltaTime());
         level.usedTime(Gdx.graphics.getDeltaTime());
         if(level.outOfTime()) {
-            // game over
+            game.changeScreen(new GameOverMenu(game, level));
         }
         batch.end();
 
